@@ -1,1 +1,17 @@
+name: Build and push to ECR
 
+on: push
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get my code
+        uses: actions/checkout@v4
+
+      - name: Show files
+        run: ls -la
