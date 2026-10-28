@@ -24,3 +24,14 @@ jobs:
 
       - name: Who am I in AWS
         run: aws sts get-caller-identity
+
+      - name: Log in to ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build the image
+        run: docker build -t ${{ steps.ecr.outputs.registry }}/my-nginx:${{ github.sha }} .
+
+      - name: Push the image
+        run: docker push ${{ steps.ecr.outputs.registry }}/my-nginx:${{ github.sha }}
+        
