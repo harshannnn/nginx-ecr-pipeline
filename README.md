@@ -19,3 +19,4 @@ A small CI/CD project. Every push to `main` builds a Docker image (nginx serving
 ## Tools used
 
 GitHub Actions, Docker, nginx, AWS IAM (OIDC role), Amazon ECR
+Updated the README to test the pipeline filter.
