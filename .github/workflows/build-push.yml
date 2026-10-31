@@ -35,5 +35,11 @@ jobs:
       - name: Build the image
         run: docker build -t ${{ steps.ecr.outputs.registry }}/my-nginx:${{ github.sha }} .
 
+      - name: Test the image
+        run: |
+          docker run -d --name test-nginx -p 8080:80 ${{ steps.ecr.outputs.registry }}/my-nginx:${{ github.sha }}
+          sleep 3
+          curl -f http://localhost:8080
+
       - name: Push the image
         run: docker push ${{ steps.ecr.outputs.registry }}/my-nginx:${{ github.sha }}
