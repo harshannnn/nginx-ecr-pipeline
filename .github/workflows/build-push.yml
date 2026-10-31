@@ -1,6 +1,9 @@
 name: Build and push to ECR
 
-on: push
+on:
+  push:
+    paths-ignore:
+      - '**.md'
 
 permissions:
   id-token: write
@@ -34,4 +37,3 @@ jobs:
 
       - name: Push the image
         run: docker push ${{ steps.ecr.outputs.registry }}/my-nginx:${{ github.sha }}
-        
