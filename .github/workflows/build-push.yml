@@ -37,7 +37,7 @@ jobs:
 
       - name: Test the image
         run: |
-         curl -f http://localhost:8080 ${{ steps.ecr.outputs.registry }}/my-nginx:${{ github.sha }}
+          docker run -d --name test-nginx -p 8080:80 ${{ steps.ecr.outputs.registry }}/my-nginx:${{ github.sha }}
           sleep 3
           curl -f http://localhost:8080
 
