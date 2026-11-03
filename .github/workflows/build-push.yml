@@ -43,3 +43,15 @@ jobs:
 
       - name: Push the image
         run: docker push ${{ steps.ecr.outputs.registry }}/my-nginx:${{ github.sha }}
+      - name: Deploy to EC2
+        env:
+          REGISTRY: ${{ steps.ecr.outputs.registry }}
+          IMAGE: ${{ steps.ecr.outputs.registry }}/my-nginx:${{ github.sha }}
+          INSTANCE_ID: ${{ secrets.EC2_INSTANCE_ID }}
+        run: |
+          COMMAND_ID=$(aws ssm send-command \
+            --instance-ids "$INSTANCE_ID" \
+            --document-name "AWS-RunShellScript" \
+            --parameters "commands=[\"aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin $REGISTRY\",\"docker pull $IMAGE\",\"docker rm -f web || true\",\"docker run -d --name web -p 8080:80 $IMAGE\"]" \
+            --query "Command.CommandId" --output text)
+          aws ssm wait command-executed --command-id "$COMMAND_ID" --instance-id "$INSTANCE_ID"
