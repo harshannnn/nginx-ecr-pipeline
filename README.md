@@ -1,22 +1,30 @@
 # nginx-ecr-pipeline
 
-A small CI/CD project. Every push to `main` builds a Docker image (nginx serving one web page) and pushes it to a private Amazon ECR repo.
+A small CI/CD pipeline: every push builds a Docker image, tests it, pushes it
+to Amazon ECR and deploys it to an EC2 instance, with no saved AWS keys.
 
-## How it works
+## What happens on every push
 
-1. I push code to GitHub.
-2. GitHub Actions starts (`.github/workflows/build-push.yml`).
-3. The robot logs in to AWS with OIDC, so no passwords or keys are saved anywhere.
-4. It builds the image from the `Dockerfile`.
-5. It pushes the image to the ECR repo `my-nginx` in `ap-south-1`, tagged with the commit ID.
+1. **Log in to AWS** with GitHub OIDC (a short-lived role, no access keys stored)
+2. **Build** the Docker image, tagged with the commit ID
+3. **Test** it: start the container and check it answers with `curl`
+4. **Push** the image to a private ECR repository (`my-nginx`, ap-south-1)
+5. **Deploy** to EC2 through AWS Systems Manager: log in to ECR, pull the
+   exact commit tag, replace the old container, run the new one on port 8080
 
-## Files
+If the test fails, nothing is pushed. If the deploy fails, the run turns red.
+README-only changes do not start the pipeline.
 
-- `Dockerfile`: the recipe for the image
-- `index.html`: the web page
-- `.github/workflows/build-push.yml`: the robot's to-do list
+## Why I built it this way
 
-## Tools used
+- **OIDC instead of access keys:** nothing secret is stored in GitHub except a role ARN.
+- **Commit-ID tag instead of `latest`:** the server always runs exactly what the
+  pipeline just built, and every image can be traced to a commit.
+- **SSM instead of SSH:** no open login keys; the pipeline only has permission
+  to run commands on one instance.
+- **Least privilege:** the EC2 role can only pull from ECR, and the pipeline
+  role can only send commands to this instance.
 
-GitHub Actions, Docker, nginx, AWS IAM (OIDC role), Amazon ECR
-Updated the README to test the pipeline filter.
+## Tech used
+
+GitHub Actions, Docker, Amazon ECR, EC2, IAM roles, AWS Systems Manager, nginx
